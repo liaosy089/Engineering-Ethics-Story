@@ -382,6 +382,29 @@ html, body {
   text-align: center;
 }
 
+.warn-text {
+  color: #ff6b6b !important;
+  font-weight: 700 !important;
+  background: rgba(255,107,107,0.12);
+  border: 1px solid rgba(255,107,107,0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center !important;
+}
+
+.text-link-btn {
+  display: block;
+  margin: 10px auto 0;
+  background: none;
+  border: none;
+  color: #9aa4b5;
+  font-size: 11.5px;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+}
+.text-link-btn:hover { color: #dde3ee; }
+
 /* ---- 結局畫面：繼續下一案 / 兌獎登記 ---- */
 #continue-block {
   margin-top: 4px;

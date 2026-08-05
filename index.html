@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>誠信抉擇：文化局工程倫理文字劇情</title>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <div id="app">
@@ -54,13 +54,15 @@
       <h2>文化局工程倫理文字劇情</h2>
       <p>你是文化局新進的業務承辦人。在文化局裡走動、找同仁與廠商聊聊，過程中你會遇到一些不確定該怎麼辦的時刻——</p>
       <p>政風室的小風隨時歡迎你去聊聊，遇到疑慮，先問不吃虧。</p>
-      <p><b>兩個案件都要玩過、看到結局</b>，才能登記兌換宣導小禮物喔！先選一個案件開始：</p>
+      <p class="warn-text">⚠️ 兩個案件都要玩過、看到結局，才能登記兌換宣導小禮物喔！</p>
+      <p>先選一個案件開始：</p>
       <div id="introProgress" class="intro-progress hidden">—</div>
       <div class="case-select">
         <button class="game-btn case-btn" data-case="case1">案件一：古蹟修復工程</button>
         <button class="game-btn case-btn" data-case="case2">案件二：特展設備採購</button>
       </div>
       <button id="goToCertBtn" class="game-btn ghost-btn hidden">兩案都完成了，前往兌獎登記 →</button>
+      <button id="clearProgressBtn" class="text-link-btn hidden">清除目前的破關紀錄，重新開始</button>
     </div>
   </div>
 
@@ -105,7 +107,7 @@
         </div>
       </div>
 
-      <button id="restartBtn" class="game-btn ghost-btn">重新遊玩（從頭開始）</button>
+      <button id="restartBtn" class="game-btn ghost-btn">返回選案畫面</button>
     </div>
   </div>
 
@@ -122,7 +124,7 @@
 
 </div>
 
-<script src="js/data.js?v=4"></script>
-<script src="js/game.js?v=4"></script>
+<script src="js/data.js?v=5"></script>
+<script src="js/game.js?v=5"></script>
 </body>
 </html>

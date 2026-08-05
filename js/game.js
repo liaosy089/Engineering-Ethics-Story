@@ -432,15 +432,18 @@ function submitCert() {
 function renderIntroProgress() {
   const box = document.getElementById("introProgress");
   const goBtn = document.getElementById("goToCertBtn");
+  const clearBtn = document.getElementById("clearProgressBtn");
   const done1 = !!progress.case1;
   const done2 = !!progress.case2;
   if (!done1 && !done2) {
     box.classList.add("hidden");
     goBtn.classList.add("hidden");
+    clearBtn.classList.add("hidden");
     return;
   }
   box.classList.remove("hidden");
   box.textContent = `目前進度：案件一 ${done1 ? "✅ 已完成" : "⬜ 未完成"} ／ 案件二 ${done2 ? "✅ 已完成" : "⬜ 未完成"}`;
+  clearBtn.classList.remove("hidden");
   if (done1 && done2) {
     goBtn.classList.remove("hidden");
   } else {
@@ -517,11 +520,23 @@ document.querySelectorAll(".case-btn").forEach((btn) => {
 document.getElementById("goToCertBtn").addEventListener("click", showCertOnly);
 document.getElementById("certGenerateBtn").addEventListener("click", generateCert);
 document.getElementById("certSubmitBtn").addEventListener("click", submitCert);
+
+// 「返回選案畫面」不會清掉已經破關的紀錄——只是帶你回去選案件，
+// 避免像之前那樣：破完一案想接著玩另一案，結果不小心把已經完成的那案也洗掉。
 document.getElementById("restartBtn").addEventListener("click", () => {
-  try {
-    localStorage.removeItem("cs_progress");
-  } catch (e) {}
-  location.reload();
+  document.getElementById("ending-overlay").classList.add("hidden");
+  document.getElementById("intro-overlay").classList.remove("hidden");
+  renderIntroProgress();
+});
+
+// 真的要清空紀錄（例如同一台電腦換下一位同仁玩），才走這個次要的小連結，
+// 而且要再次確認，不會被誤觸。
+document.getElementById("clearProgressBtn").addEventListener("click", () => {
+  showConfirm("確定要清除目前的破關紀錄嗎？案件一、案件二的完成狀態都會被清空，這個動作沒辦法復原。", () => {
+    progress = {};
+    saveProgress();
+    renderIntroProgress();
+  });
 });
 
 renderIntroProgress();
