@@ -513,10 +513,12 @@ html, body {
   color: #9aa4b5;
   margin-bottom: 8px;
 }
+.cert-generate-btn { width: 100%; margin-top: 2px; }
 .cert-status {
   font-size: 12.5px;
   min-height: 16px;
   text-align: center;
+  margin-top: 4px;
 }
 .cert-status.ok { color: #52d17c; }
 .cert-status.err { color: #ff6b6b; }
