@@ -1,9 +1,9 @@
 // ============================================================
-// 誠信抉擇（文字版）- 遊戲資料定義
-// 對話樹 / 結局內容與正版 RPG 完全相同，只是改用「地點 → 按鈕列表」取代走動地圖。
+// 誠信抉擇 - 遊戲資料定義（地圖 / NPC / 對話 / 任務 / 結局）
 // ============================================================
 
 // ---- 角色美術（頭像）----
+// 尚未提供圖檔的角色會自動 fallback 為無頭像，不影響遊戲運作。
 const PORTRAITS = {
   player: "assets/characters/player.jpg",
   xiaofeng: "assets/characters/xiaofeng.jpg",
@@ -17,43 +17,72 @@ const PORTRAITS = {
   rival: "assets/characters/rival.jpg",
 };
 
-// ---- 地點（取代原本的走動地圖）----
-// 每個地點是一張背景圖 + 一排可以按的對象（NPC 或可查看物件）。
-// exitTarget 為 "case_field" 時，依目前案件解析成 CASES[caseId].fieldMap。
-const HUBS = {
+// ---- 角色美術（Q版全身立繪，選用）----
+// 提供了就用全身立繪站在場景裡（自動去除白底），沒提供就退回頭像圓牌，不影響遊戲運作。
+const SPRITES = {
+  player: "assets/characters/sprites/player.jpg",
+  xiaofeng: "assets/characters/sprites/xiaofeng.jpg",
+  chief: "assets/characters/sprites/chief.jpg",
+  colleague: "assets/characters/sprites/colleague.jpg",
+  supervisor: "assets/characters/sprites/supervisor.jpg",
+  contractor: "assets/characters/sprites/contractor.jpg",
+  historian: "assets/characters/sprites/historian.jpg",
+  vendor: "assets/characters/sprites/vendor.jpg",
+  committee: "assets/characters/sprites/committee.jpg",
+  rival: "assets/characters/sprites/rival.jpg",
+};
+
+// ---- 場景：單張背景圖 + 可走動範圍(貼合透視的梯形) + 固定站位 ----
+// background 檔案不存在時會自動退回純色底，不影響遊戲運作。
+// floor 是梯形：yTop/yBottom 上下邊界，top/bottom 各自的左右邊界，模擬「越遠越窄」的透視走道。
+// exit.target 為 "case_field" 時，由 getExitTarget() 依目前案件解析成 CASES[caseId].fieldMap。
+const SCENES = {
   office: {
     label: "文化局辦公室",
     background: "assets/backgrounds/office.jpg",
-    exitLabel: "前往案件現場 →",
-    exitTarget: "case_field",
-    actions: [
-      { id: "chief", label: "資深同仁" },
-      { id: "xiaofeng", label: "小風（政風室）" },
-      { id: "colleague", label: "阿德（同事）" },
+    floor: { yTop: 210, yBottom: 445, topLeftX: 200, topRightX: 600, bottomLeftX: 20, bottomRightX: 700 },
+    playerSpawn: { x: 260, y: 410 },
+    exit: { x: 480, y: 395, w: 80, h: 60, target: "case_field" },
+    npcs: [
+      { id: "xiaofeng", name: "小風", x: 240, y: 260 },
+      { id: "chief", name: "資深同仁", x: 560, y: 260 },
+      { id: "colleague", name: "阿德", x: 420, y: 340 },
     ],
+    objects: [],
   },
   site: {
     label: "古蹟修復工地",
     background: "assets/backgrounds/site.jpg",
-    exitLabel: "返回文化局 →",
-    exitTarget: "office",
-    actions: [
-      { id: "supervisor", label: "監造技師" },
-      { id: "contractor", label: "承包商" },
-      { id: "historian", label: "文史工作者" },
-      { id: "material_pile", label: "查看材料堆", isObject: true, icon: "🪵" },
+    // 這張圖的石板路是從左下往右上斜切收窄的透視，右半邊多半是圍籬跟建築，
+    // 梯形跟著實際路面走，不是左右對稱的通道。
+    floor: { yTop: 255, yBottom: 442, topLeftX: 10, topRightX: 185, bottomLeftX: 10, bottomRightX: 600 },
+    playerSpawn: { x: 150, y: 430 },
+    // 離開熱點必須整個落在上面梯形可走動範圍內（不然框看起來很大，玩家卻走不進去）。
+    // 底下這組數字算過：在 y:418~442 這段，梯形右邊界最窄處還有到 x≈548，
+    // 框只到 540，留了一點安全邊界。
+    exit: { x: 460, y: 418, w: 80, h: 24, target: "office" },
+    npcs: [
+      { id: "supervisor", name: "監造技師", x: 110, y: 340 },
+      { id: "historian", name: "文史工作者", x: 240, y: 370 },
+      { id: "contractor", name: "承包商", x: 370, y: 420 },
+    ],
+    objects: [
+      { id: "material_pile", name: "材料堆", icon: "🪵", x: 330, y: 320 },
     ],
   },
   exhibition: {
     label: "特展布展現場",
     background: "assets/backgrounds/exhibition.jpg",
-    exitLabel: "返回文化局 →",
-    exitTarget: "office",
-    actions: [
-      { id: "vendor", label: "甲廠商業務" },
-      { id: "committee", label: "評選委員" },
-      { id: "rival", label: "競爭廠商業務" },
-      { id: "spec_compare", label: "比對規格書", isObject: true, icon: "📋" },
+    floor: { yTop: 220, yBottom: 445, topLeftX: 150, topRightX: 600, bottomLeftX: 20, bottomRightX: 700 },
+    playerSpawn: { x: 260, y: 410 },
+    exit: { x: 480, y: 395, w: 80, h: 60, target: "office" },
+    npcs: [
+      { id: "vendor", name: "甲廠商業務", x: 240, y: 270 },
+      { id: "committee", name: "評選委員", x: 560, y: 270 },
+      { id: "rival", name: "競爭廠商業務", x: 420, y: 340 },
+    ],
+    objects: [
+      { id: "spec_compare", name: "規格書比對", icon: "📋", x: 350, y: 400 },
     ],
   },
 };
@@ -66,7 +95,7 @@ const ITEM_ICONS = {
 };
 const ITEM_NAMES = {
   gift_box: "廠商禮盒",
-  material_photo: "材質比對照片",
+  material_photo: "疑似材質差異照片",
   spec_compare_doc: "規格比對報告",
 };
 
@@ -147,7 +176,7 @@ const DIALOGUES = {
       },
       gift_advice: {
         speaker: "小風",
-        text: "聽起來工地那邊有廠商要送你東西？跟你說一下原則：\n依《公務員廉政倫理規範》，超過新台幣500元的餽贈，原則上要婉拒或簽報，不能就這樣收下喔。",
+        text: "聽起來工地那邊有廠商要送你東西？先記住一個原則：\n如果對方跟你的職務有利害關係，餽贈原則上不能收。500元以下雖然在符合偶發、沒有影響特定權利義務之虞等條件時，可能屬於例外，但不是「500元以下就一定可以收」。拿不準時，先婉拒並詢問政風室最安全。",
         choices: [
           {
             label: "了解，謝謝小風",
@@ -158,7 +187,7 @@ const DIALOGUES = {
       },
       register_gift_declined: {
         speaker: "小風",
-        text: "聽說工地那邊有廠商要送你禮盒，後來你婉拒了對吧？辛苦了！\n不過提醒一下：不管最後有沒有收下，都要來政風室做個「餽贈登錄」喔。\n像是如果你當場拒絕，但沒有留下紀錄，事後萬一廠商私下亂講「其實有送成」，你會百口莫辯——登錄起來，才是保護你自己最好的方式。",
+        text: "聽說工地那邊有廠商要送你禮盒，後來你婉拒了對吧？處理得很好！\n另外跟你分享我們政風室的實務作法：像這種與職務有利害關係廠商的餽贈，即使當場已經拒收，我們仍建議主動來說明並留下紀錄。\n萬一日後雙方說法不同，有當時的紀錄，也比較能把事情說清楚、保護自己。",
         choices: [
           {
             label: "了解，我現在登錄",
@@ -169,7 +198,7 @@ const DIALOGUES = {
       },
       register_gift_accepted: {
         speaker: "小風",
-        text: "聽說工地那邊的廠商送了你東西……你收下了嗎？\n依規定這類餽贈是不能收的，我們必須馬上處理：一是趕快把東西退還或折算價金繳庫，二是這件事要正式登錄簽報。\n現在補救還來得及，一起把程序走完，總比讓它變成日後被放大檢視的把柄好。",
+        text: "聽說工地那邊的廠商送了你禮盒……你收下了嗎？\n這個廠商跟你的職務有利害關係，而且這份禮盒也不符合一般低價餽贈的例外情形，原則上不應收受。\n現在先主動說明，政風室會協助你依規定辦理退還、簽報、知會或其他適當處理。越早主動處理，越能避免問題擴大。",
         choices: [
           {
             label: "好，我現在就處理",
@@ -180,7 +209,7 @@ const DIALOGUES = {
       },
       report_advice: {
         speaker: "小風",
-        text: "如果你發現工程真的有問題，可以正式簽陳給資深同仁；\n必要的話，政風室也能協助簽報、啟動查核，你不用一個人扛這件事。",
+        text: "如果你發現工程可能有問題，可以依機關內部程序正式簽報，並把現場照片、契約及圖說等資料一併整理清楚。\n必要時政風室也可以提供廉政法規諮詢，或協助機關依程序進一步釐清，你不用一個人扛這件事。",
         choices: [
           {
             label: "謝謝，我知道該怎麼做了",
@@ -202,7 +231,7 @@ const DIALOGUES = {
       },
       c2_register_declined: {
         speaker: "小風",
-        text: "聽說廠商約你吃飯，後來你婉拒了對吧？很好！\n這種屬於《公務員廉政倫理規範》講的「飲宴應酬」，跟有利害關係的廠商吃飯應酬，原則上要婉拒——不管最後有沒有赴約，都要回政風室登錄，才不會之後被誤會你們私下有往來。",
+        text: "聽說廠商約你吃飯，後來你婉拒了對吧？很好！\n跟職務有利害關係廠商的私人飲宴，原則上就不應參加。另外，像這種可能引發廉政疑慮的邀約，本局政風室也建議主動來說明、留下紀錄；即使你沒有赴約，事先留下紀錄，日後若有人對雙方往來提出質疑，也比較容易把事情說清楚。",
         choices: [
           {
             label: "了解，我現在登錄",
@@ -213,7 +242,7 @@ const DIALOGUES = {
       },
       c2_register_accepted: {
         speaker: "小風",
-        text: "聽說你去赴了廠商的飯局約……這屬於《公務員廉政倫理規範》講的「飲宴應酬」，跟有利害關係的廠商吃飯，原則上應該婉拒才對。\n趕快把這次應酬的時間、場合、內容登錄下來，之後如果有人質疑，才有紀錄可以說明。",
+        text: "聽說你已經去了廠商邀的飯局？對方是跟你職務有利害關係的廠商，這類私人飲宴原則上不應參加。\n現在最重要的是不要隱瞞，請把邀約時間、場合、參與人員及大致情形主動說明，由政風室協助依實際情形處理。主動留下完整紀錄很重要，但登錄本身不代表原本赴約的疑慮就因此消失。",
         choices: [
           {
             label: "好，我現在處理",
@@ -224,7 +253,7 @@ const DIALOGUES = {
       },
       c2_report_advice: {
         speaker: "小風",
-        text: "如果規格書真的是照著特定廠商的產品型錄寫的，這就是綁標的高風險徵兆，\n你可以正式簽報，要求採購單位重新檢視規格，必要時政風室這邊也能協助。",
+        text: "如果規格內容幾乎照著特定廠商產品型錄撰寫，甚至指定特定型號，確實是不當限制競爭的高風險徵兆。\n應先釐清這些規格是否確有採購需求上的必要，必要時可以正式簽報要求重新檢視，政風室也可以協助提供相關風險意見。",
         choices: [
           {
             label: "謝謝，我知道該怎麼做了",
@@ -262,7 +291,7 @@ const DIALOGUES = {
       },
       briefing2: {
         speaker: "資深同仁",
-        text: "這案子拖超過一年，上面一直在問進度。這次驗收你負責，盡快簽一簽趕快結掉，大家都輕鬆～",
+        text: "這案子拖超過一年，上面一直在問進度。這次驗收作業你協助辦理，程序能跑就盡快跑一跑，趕快把案子結掉，大家都輕鬆～",
         choices: [
           {
             label: "我了解，我先去工地看看狀況",
@@ -372,7 +401,7 @@ const DIALOGUES = {
         text: "評選會議都排定了，這時候喊卡會打亂很多安排，搞不好是我們想太多了。你確定現在要提出來嗎？",
         choices: [
           {
-            label: "我認為這樣的規格有綁標疑慮，應該退回重新檢視，我要正式簽報",
+            label: "我認為這份規格可能有不當限制競爭的疑慮，應該退回重新檢視，我要正式簽報。",
             next: null,
             effects: (s) => {
               s.flags.reportedUp2 = true;
@@ -519,12 +548,12 @@ const DIALOGUES = {
         speaker: "承包商",
         text: "檜木喔……現在檜木很貴又不好買啦，我們用同等級的材料替代，效果差不多啦，官方文件上寫檜木就好，不用太計較～",
         choices: [
-          { label: "這樣算是變更設計，需要正式核准吧？", next: "gift_setup" },
+          { label: "如果實際使用的材料跟契約或圖說不一樣，應該依契約及相關變更程序辦理，不能由廠商自己決定替換吧？", next: "gift_setup" },
         ],
       },
       gift_setup: {
         speaker: "承包商",
-        text: "哎呀，都是小事情，不用那麼緊張啦。對了，這個給你，家鄉土產，不成敬意，你收下就好～\n（遞上一個禮盒）",
+        text: "哎呀，都是小事情，不用那麼緊張啦。對了，這個給你，家鄉土產啦，市價大概一千多而已，不成敬意，你收下就好～\n（遞上一個禮盒）",
         onEnter: (s) => { s.flags.giftOffered = true; },
         choices: [
           {
@@ -555,7 +584,7 @@ const DIALOGUES = {
       xiaofeng_tip: {
         speaker: "小風（電話那頭）",
         portraitOverride: "xiaofeng",
-        text: "喂？聽起來工地那邊有廠商要送你東西？\n依《公務員廉政倫理規範》，超過新台幣500元的餽贈，原則上要婉拒或簽報，不能就這樣收下喔。先謝謝對方心意，委婉拒絕最保險！",
+        text: "喂？廠商要送你東西喔？如果對方跟你的職務有利害關係，餽贈原則上不能收。500元以下也不是一律可以收，還要看是不是偶發、會不會影響特定權利義務等情況。這種情形先婉拒，再回來跟政風室說一聲最安全。",
         onEnter: (s) => { s.flags.consultedGift = true; s.flags.giftInformed = true; },
         choices: [{ label: "了解，謝謝小風", next: "gift_setup_informed" }],
       },
@@ -586,7 +615,7 @@ const DIALOGUES = {
       },
       gift_reminder: {
         speaker: "（提醒）",
-        text: "不管最後收下與否，記得之後要去政風室找小風完成「餽贈登錄」。\n就算當場拒絕了，只要沒有留下紀錄，事後萬一廠商亂講，你也百口莫辯——登錄起來，才是保護自己最好的方式。",
+        text: "遇到與職務有利害關係廠商的餽贈，除了先判斷能不能收之外，本局政風室也建議主動說明並留下紀錄。\n即使當場已拒收，有紀錄仍能在日後發生爭議時，多一層保障。",
         choices: [{ label: "好，我知道了", next: null }],
       },
       default: {
@@ -638,7 +667,7 @@ const DIALOGUES = {
     nodes: {
       inspect: {
         speaker: "（你蹲下來查看）",
-        text: "你蹲下來仔細比對角落的廢棄料與牆上新裝的材料……\n顏色、紋理明顯不一樣：被丟棄的料看起來才像真正的檜木，新裝上去的材質偏向便宜的塑合板。\n你拍下照片存證。",
+        text: "你蹲下來仔細比對角落被換下來的材料與牆上新裝的材料……\n兩者在顏色、紋理及外觀上明顯不同，與圖說要求的材質似乎有落差。\n你拍下現場照片，準備帶回進一步查證。",
         choices: [
           {
             label: "確認",
@@ -672,9 +701,9 @@ const DIALOGUES = {
     nodes: {
       greet: {
         speaker: "甲廠商業務",
-        text: "長官好～這次的展場設備都是我們公司在弄，品質有保證的啦！",
+        text: "長官好～我們公司這次也有參與這個案子，這類展場設備我們做過不少，品質很有信心啦！",
         choices: [
-          { label: "這次規格好像蠻specific的，你們常常投這種案子嗎？", next: "reveal" },
+          { label: "這次規格好像訂得很細，你們常常投這種案子嗎？", next: "reveal" },
           {
             label: "先看看展場狀況",
             next: null,
@@ -690,7 +719,7 @@ const DIALOGUES = {
       },
       invite: {
         speaker: "甲廠商業務",
-        text: "對呀，等結果出來，我請你跟評選老師一起吃個飯，好好聊聊，以後也請你多照顧啦！",
+        text: "評選會議前找一天，我請你跟評選老師一起吃個飯，大家先認識一下嘛，以後也請你多照顧啦！",
         onEnter: (s) => { s.flags.vendorInvited = true; },
         choices: [
           {
@@ -720,7 +749,7 @@ const DIALOGUES = {
       xiaofeng_tip2: {
         speaker: "小風（電話那頭）",
         portraitOverride: "xiaofeng",
-        text: "喂？廠商邀你跟評選委員一起吃飯喔？\n這屬於《公務員廉政倫理規範》講的「飲宴應酬」，跟有利害關係的廠商吃飯，原則上應該婉拒，評選會議還沒結束前更不適合赴約，會有球員兼裁判的觀感問題。",
+        text: "喂？正在參與你承辦採購的廠商，邀你跟評選委員一起吃飯喔？\n對方跟你的職務有利害關係，這類私人飲宴原則上不應參加；而且現在評選程序還沒有結束，更應避免私下接觸，免得影響採購公正或產生外界疑慮。這種邀約先婉拒最妥當。",
         onEnter: (s) => { s.flags.consultedInvite = true; s.flags.inviteInformed = true; },
         choices: [{ label: "了解，謝謝小風", next: "invite_informed" }],
       },
@@ -750,7 +779,7 @@ const DIALOGUES = {
       },
       invite_reminder: {
         speaker: "（提醒）",
-        text: "不管有沒有答應飯局邀約，這類跟利害關係廠商的「飲宴應酬」都要回政風室登錄備查，之後才不會被誤會，也保護你自己。",
+        text: "跟職務有利害關係廠商的私人飲宴原則上不要參加。對於可能引發廉政疑慮的邀約，本局政風室也建議主動說明並留下紀錄，讓自己多一層保障。",
         choices: [{ label: "好，我知道了", next: null }],
       },
       default: {
@@ -781,11 +810,11 @@ const DIALOGUES = {
       },
       slip: {
         speaker: "評選委員",
-        text: "（愣了一下）呃……其實那家的負責人是我表哥啦，不過工作是工作，我評分會很公正的，你放心。",
+        text: "（愣了一下）呃……其實甲廠商的負責人是我弟弟啦。不過工作是工作，我評分一定會很公正的，你放心。",
         onEnter: (s) => { s.flags.metCommittee = true; s.flags.knowsCommitteeConflict = true; },
         choices: [
           {
-            label: "老師，這種情況依規定應該要迴避，我需要回報處理",
+            label: "老師，這個關係涉及評選委員迴避規定，我需要立即回報機關處理。",
             next: null,
             effects: (s) => { addIntegrity(s, 15); s.flags.raisedConflict = true; },
           },
@@ -820,7 +849,7 @@ const DIALOGUES = {
       },
       clue: {
         speaker: "競爭廠商業務",
-        text: "那個抗UV玻璃跟燈光的規格，根本是照抄甲廠商的產品型錄寫的，一般公司的產品規格不可能剛好完全對得上。\n我們公司東西不比他們差，卻連投標資格都沒有。",
+        text: "那個抗UV玻璃跟燈光規格，跟甲廠商的產品型錄幾乎完全對得上。\n我們公司的產品明明也能達到使用需求，卻根本無法符合這些規格，連公平競爭的機會都沒有。",
         choices: [
           {
             label: "謝謝你告訴我，我會去查證",
@@ -845,7 +874,7 @@ const DIALOGUES = {
     nodes: {
       inspect: {
         speaker: "（你拿出規格書比對）",
-        text: "你把規格書上的技術規格，一條一條對照甲廠商的產品型錄……\n幾乎一字不差，連型號都對得上，這規格根本是照著他們的產品寫的。",
+        text: "你把規格書上的技術規格一條一條對照甲廠商的產品型錄……\n多項規格高度一致，甚至連特定型號都完全相同。這已經出現不當限制競爭的高度疑慮，但仍需要進一步釐清這些規格是否具有合理、必要的採購需求。",
         choices: [
           {
             label: "確認",
@@ -872,7 +901,7 @@ const DIALOGUES = {
 const ENDINGS = {
   hero: {
     title: "誠信守護者",
-    text: "你堅持依規定陳報，政風室介入了解後，確認材料確實遭到偷換。案件妥善處理，古蹟修復要求廠商改正，同事們也看見了：發現問題就說出來，其實沒有想像中可怕。",
+    text: "你堅持依規定陳報，機關隨即啟動後續查核。經相關業務及工程專業人員進一步確認，現場使用材料確實與契約要求不符，機關要求廠商依規定改善。同事們也看見了：發現疑慮就依程序說出來，其實沒有想像中可怕。",
   },
   shaky: {
     title: "勇敢的一步",
@@ -903,14 +932,14 @@ function getGiftRegistrationNote(state) {
   if (state.flags.acceptedGift) {
     return "\n\n（後記：那個禮盒，你後來沒有拿去政風室登錄或退還。半年後，這件事被人翻出來檢舉，你才發現自己既沒有退款紀錄、也沒有申報紀錄，說不清當初到底是怎麼回事。）";
   }
-  return "\n\n（後記：工地那次，你雖然當場婉拒了禮盒，但沒有回政風室完成登錄。後來耳聞承包商私下跟人說「其實有送成」，你才發現自己百口莫辯——不管當初收或不收，沒有留下紀錄，就沒有東西能還你清白。）";
+  return "\n\n（後記：工地那次，你當場婉拒了禮盒，但沒有另外留下紀錄。後來耳聞承包商對外的說法和你記得的不太一樣，雖然你確實沒有收下，仍花了一番功夫釐清經過。這也提醒你：面對可能引發廉政疑慮的餽贈，主動知會並留下紀錄，可以多一層保障。）";
 }
 
 // ---- 結局（案件二）----
 const ENDINGS2 = {
   hero2: {
     title: "誠信守護者 II",
-    text: "你不只識破了規格書量身訂做的問題，也主動處理了評選委員的利益衝突，讓這次採購案重新回到公平公正的軌道上。同事看見了：把關，不是找麻煩，而是讓大家都安心。",
+    text: "你不只發現了規格設定可能不當限制競爭的疑慮，也主動處理了評選委員的利益衝突。機關重新檢視採購需求、技術規格及評選程序後，讓這次採購重新回到公平公正的軌道上。同事看見了：把關，不是找麻煩，而是讓大家都安心。",
   },
   shaky2: {
     title: "遲來的堅持",
@@ -918,11 +947,11 @@ const ENDINGS2 = {
   },
   compromise2: {
     title: "沉默的代價",
-    text: "你選擇照原本流程送出去。評選結果出爐後不久，這起綁標疑慮被廠商間的糾紛捅了出來，回頭追查時發現你其實早就知情——這不只是採購問題，也讓你被捲入調查。",
+    text: "你選擇照原本流程送出去。評選結果出爐後不久，這起不當限制競爭疑慮被廠商間的糾紛捅了出來，回頭追查時發現你其實早就知情——這不只是採購問題，也讓你被捲入調查。",
   },
   missed2: {
     title: "沒發現的裂縫",
-    text: "評選會議照常舉行，你也沒有多想。後來這批設備陸續出問題，你才想起規格書那些「剛好對得上」的細節……如果當初多問一句，或許能提早發現。",
+    text: "評選會議照常舉行，你也沒有多想。結果公布後，有廠商對招標規格提出異議，機關重新檢視時，才發現部分技術規格與特定廠商產品高度一致。你這才想起當時那些「剛好都對得上」的細節……如果當初多問一句，或許能更早發現問題。",
   },
 };
 
@@ -940,5 +969,5 @@ function getInviteRegistrationNote(state) {
   if (state.flags.acceptedInvite) {
     return "\n\n（後記：那次飯局，你後來沒有回政風室登錄。評選結果公布後，有人質疑你跟廠商私下有往來，你才發現自己說不清那頓飯到底吃了什麼、談了什麼。）";
   }
-  return "\n\n（後記：那次廠商邀約，你雖然婉拒了，但沒有回政風室完成登錄。後來耳聞廠商私下跟人說「其實有一起吃飯」，你才發現自己百口莫辯——不管去或不去，沒有留下紀錄，就沒有東西能還你清白。）";
+  return "\n\n（後記：那次廠商邀約，你已經婉拒，但沒有另外留下紀錄。後來廠商對外的說法卻讓人誤以為你曾赴約，你只好多花了一番功夫釐清經過。這也提醒你：面對可能引發廉政疑慮的邀約，主動知會並留下紀錄，可以多一層保障。）";
 }
