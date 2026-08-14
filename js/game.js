@@ -69,8 +69,8 @@ function initState(caseId) {
 }
 
 function resolveExitTarget() {
-  const hub = HUBS[state.currentHub];
-  return hub.exitTarget === "case_field" ? CASES[state.caseId].fieldMap : hub.exitTarget;
+  const hub = SCENES[state.currentHub];
+  return hub.exit.target === "case_field" ? CASES[state.caseId].fieldMap : hub.exit.target;
 }
 
 function goToHub(hubId) {
@@ -93,20 +93,25 @@ function goToHub(hubId) {
 // ---------------- 地點畫面 ----------------
 
 function updateBackground(hubId) {
-  document.getElementById("bg-layer").style.backgroundImage = `url("${HUBS[hubId].background}")`;
+  document.getElementById("bg-layer").style.backgroundImage = `url("${SCENES[hubId].background}")`;
 }
 
 function renderHub() {
   document.getElementById("dialogue-view").classList.add("hidden");
   document.getElementById("hub-view").classList.remove("hidden");
 
-  const hub = HUBS[state.currentHub];
+  const hub = SCENES[state.currentHub];
   document.getElementById("locationName").textContent = hub.label;
   updateBackground(state.currentHub);
 
+  const actions = [
+    ...hub.npcs.map((n) => ({ id: n.id, label: n.name, isObject: false })),
+    ...hub.objects.map((o) => ({ id: o.id, label: o.name, icon: o.icon, isObject: true })),
+  ];
+
   const box = document.getElementById("hubActions");
   box.innerHTML = "";
-  hub.actions.forEach((a) => {
+  actions.forEach((a) => {
     const btn = document.createElement("button");
     btn.className = "hub-btn";
     const portraitSrc = !a.isObject && PORTRAITS[a.id];
@@ -132,7 +137,7 @@ function renderHub() {
   });
 
   const exitBtn = document.getElementById("hubExitBtn");
-  exitBtn.textContent = hub.exitLabel;
+  exitBtn.textContent = state.currentHub === "office" ? "🚶 前往案件現場" : "🚶 返回機關辦公室";
   exitBtn.onclick = () => {
     const fieldMapId = CASES[state.caseId].fieldMap;
     const evidenceFlag = FIELD_EVIDENCE_FLAG[state.caseId];
